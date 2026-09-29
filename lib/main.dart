@@ -1,244 +1,206 @@
 import 'package:flutter/material.dart';
-import 'package:math_expressions/math_expressions.dart';
 
 void main() {
+  // Entry point of the app
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // Sets the home screen of the app
+      home: HomeScreen(),
+
+      // Removes debug banner
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
-    ); // MaterialApp
+
+      // Sets the app theme color
+      theme: ThemeData(primarySwatch: Colors.indigo),
+    );
   }
 }
 
-class HomePage extends StatefulWidget {
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
-  var userInput = '';
-  var answer = '';
+class _HomeScreenState extends State<HomeScreen> {
+  // List to store tasks
+  List<String> todoList = [];
 
-  // Array of button
-  final List<String> buttons = [
-    'C',
-    '+/-',
-    '%',
-    'DEL',
-    '7',
-    '8',
-    '9',
-    '/',
-    '4',
-    '5',
-    '6',
-    'x',
-    '1',
-    '2',
-    '3',
-    '-',
-    '0',
-    '.',
-    '=',
-    '+',
-  ];
+  // Controller for text input
+  final TextEditingController _controller = TextEditingController();
+
+  // Index to track which task is being edited
+  int updateIndex = -1;
+
+  // Function to add a new task to the list
+  addList(String task) {
+    setState(() {
+      todoList.add(task);
+      _controller.clear();
+    });
+  }
+
+  // Function to update an existing task
+  updateListItem(String task, int index) {
+    setState(() {
+      todoList[index] = task;
+
+      // Reset update index
+      updateIndex = -1;
+      _controller.clear();
+    });
+  }
+
+  // Function to delete a task
+  deleteItem(index) {
+    setState(() {
+      todoList.removeAt(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Calculator"),
-        backgroundColor: Colors.blueAccent,
+        title: Text(
+          "Todo Application",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 25,
+          ),
+        ),
+
+        // Centers the app bar title
+        centerTitle: true,
+        backgroundColor: Colors.green,
         foregroundColor: Colors.white,
-      ), //AppBar
-      backgroundColor: Colors.white38,
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: Container(
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    Container(
-                      padding: EdgeInsets.all(20),
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        userInput,
-                        style: TextStyle(fontSize: 18, color: Colors.white),
+      ),
+      body: Container(
+        margin: EdgeInsets.all(10),
+        child: Column(
+          children: [
+            Expanded(
+              flex: 90,
+              child: ListView.builder(
+
+                  // Number of tasks in the list
+                  itemCount: todoList.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+
+                      // Card background color
+                      color: Colors.green,
+                      child: Container(
+                        margin: EdgeInsets.only(left: 20),
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.all(10),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 80,
+                              child: Text(
+                                // Display the task text
+                                todoList[index],
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20),
+                              ),
+                            ),
+
+                            // Edit button
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _controller.clear();
+                                  _controller.text = todoList[index];
+                                  updateIndex = index;
+                                });
+                              },
+                              icon: Icon(
+                                Icons.edit,
+                                size: 30,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+
+                            // Delete button
+                            IconButton(
+                              onPressed: () {
+                                deleteItem(index);
+                              },
+                              icon: Icon(
+                                Icons.delete,
+                                size: 30,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+            ),
+            Expanded(
+                flex: 10,
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 70,
+                      child: SizedBox(
+                        height: 60,
+                        child: TextFormField(
+                          // Input field controller
+                          controller: _controller,
+                          decoration: InputDecoration(
+                            focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.green,
+                                )),
+                            filled: true,
+
+                            // Placeholder text
+                            labelText: 'Create Task....',
+                            labelStyle: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    Container(
-                      padding: EdgeInsets.all(15),
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        answer,
-                        style: TextStyle(
-                            fontSize: 30,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    )
-                  ]),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Container(
-              child: GridView.builder(
-                  itemCount: buttons.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4),
-                  itemBuilder: (BuildContext context, int index) {
-                    // Clear Button
-                    if (index == 0) {
-                      return MyButton(
-                        buttontapped: () {
-                          setState(() {
-                            userInput = '';
-                            answer = '0';
-                          });
-                        },
-                        buttonText: buttons[index],
-                        color: Colors.blue[50],
-                        textColor: Colors.black,
-                      );
-                    }
+                    SizedBox(width: 5),
 
-                    // +/- button
-                    else if (index == 1) {
-                      return MyButton(
-                        buttonText: buttons[index],
-                        color: Colors.blue[50],
-                        textColor: Colors.black,
-                      );
-                    }
-                    // % Button
-                    else if (index == 2) {
-                      return MyButton(
-                        buttontapped: () {
-                          setState(() {
-                            userInput += buttons[index];
-                          });
-                        },
-                        buttonText: buttons[index],
-                        color: Colors.blue[50],
-                        textColor: Colors.black,
-                      );
-                    }
-                    // Delete Button
-                    else if (index == 3) {
-                      return MyButton(
-                        buttontapped: () {
-                          setState(() {
-                            userInput =
-                                userInput.substring(0, userInput.length - 1);
-                          });
-                        },
-                        buttonText: buttons[index],
-                        color: Colors.blue[50],
-                        textColor: Colors.black,
-                      );
-                    }
-                    // Equal_to Button
-                    else if (index == 18) {
-                      return MyButton(
-                        buttontapped: () {
-                          setState(() {
-                            equalPressed();
-                          });
-                        },
-                        buttonText: buttons[index],
-                        color: Colors.orange[700],
-                        textColor: Colors.white,
-                      );
-                    }
-
-                    //  other buttons
-                    else {
-                      return MyButton(
-                        buttontapped: () {
-                          setState(() {
-                            userInput += buttons[index];
-                          });
-                        },
-                        buttonText: buttons[index],
-                        color: isOperator(buttons[index])
-                            ? Colors.blueAccent
-                            : Colors.white,
-                        textColor: isOperator(buttons[index])
-                            ? Colors.white
-                            : Colors.black,
-                      );
-                    }
-                  }), // GridView.builder
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  bool isOperator(String x) {
-    if (x == '/' || x == 'x' || x == '-' || x == '+' || x == '=') {
-      return true;
-    }
-    return false;
-  }
-
-// function to calculate the input operation
-  void equalPressed() {
-    String finaluserinput = userInput;
-    finaluserinput = userInput.replaceAll('x', '*');
-
-    Parser p = Parser();
-    Expression exp = p.parse(finaluserinput);
-    ContextModel cm = ContextModel();
-    double eval = exp.evaluate(EvaluationType.REAL, cm);
-    answer = eval.toString();
-  }
-}
-
-// creating Stateless Widget for buttons
-class MyButton extends StatelessWidget {
-  // declaring variables
-  final color;
-  final textColor;
-  final String buttonText;
-  final buttontapped;
-
-  //Constructor
-  MyButton(
-      {this.color,
-      this.textColor,
-      required this.buttonText,
-      this.buttontapped});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: buttontapped,
-      child: Padding(
-        padding: const EdgeInsets.all(0.2),
-        child: ClipRRect(
-          // borderRadius: BorderRadius.circular(25),
-          child: Container(
-            color: color,
-            child: Center(
-              child: Text(
-                buttonText,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+                    // Floating action button for adding/updating tasks
+                    FloatingActionButton(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      onPressed: () {
+                        updateIndex != -1
+                            ? updateListItem(_controller.text,
+                                updateIndex) // Update task if editing
+                            : addList(_controller.text); // Add new task
+                      },
+                      child: Icon(updateIndex != -1
+                          ? Icons.edit
+                          : Icons.add), // Icon changes based on action
+                    ),
+                  ],
+                )),
+          ],
         ),
       ),
     );

@@ -1,5 +1,5 @@
-name: voiceculator
-description: "A new calculator."
+name: todolist
+description: "A simple and practical daily task management application (to-do list), built to practice and implement core software development concepts."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+4
 environment:
